@@ -1,0 +1,79 @@
+# identity-server
+
+This is a HTTP identity server designed for SOA solutions.  It mimicks the kerberos workflow as follows:
+
+1. client submits credentials to identity-server
+2. upon success, the identity-server issues a token
+3. the token is then passed to other services in the SOA solution with a service request
+4. the other services in the SOA solution check authorization of the service request by querying the authorization-service
+5. the authorization-service verifies if the token is valid
+6. if valid, the authorization-service verifies if the identified security principal is authorized for the service request
+7. the authorization-service returns to the other SOA service whether or not the security principal (identified by the token) is authorized to perform the service request 
+
+## endpoints
+
+### POST /login
+
+This method uses the user/pass combo supplied to verify against
+
+#### payload params
+
+- user
+- pass
+
+#### access
+
+no restrictions
+
+#### example
+
+##### request
+
+```curl -X POST -d user:foo -d pass:bar http://<server>/login```
+
+##### response
+
+```{"Id":"foobarbing","Expiration":234234234234}```
+
+### GET /valid
+
+#### params
+
+- token
+
+#### access
+
+this endpoint req
+
+#### example
+
+##### request
+
+```curl http://<server>/valid?token=fofofofo```
+
+##### response
+
+- HTTP/200 for a valid token
+- HTTP/404 for an invalid token
+
+### POST /logout
+
+This method invalidates the supplied token
+
+#### params
+
+- token
+
+#### access
+
+no restrictions
+
+#### example
+
+##### request
+
+```curl -X POST http://<server>/logout?token=fofofo```
+
+##### response
+
+- HTTP/200 when the token is invalidated
