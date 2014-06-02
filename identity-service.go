@@ -23,8 +23,8 @@ const Token_Length = 256
 const Token_Duration = time.Hour
 
 type Token struct {
-  Id string
-  Expiration time.Time
+  Id string `json:"id"`
+  Expiration time.Time `json:"expiration"`
 }
 
 func TokenGenerator() Token {
