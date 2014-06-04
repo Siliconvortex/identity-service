@@ -7,7 +7,6 @@ import (
   "net/http"
   "github.com/dchest/uniuri"
   "labix.org/v2/mgo"
-  "labix.org/v2/mgo/bson"
 )
 
 func main() {
@@ -52,26 +51,21 @@ type Token struct {
 }
 
 func getToken(token_collection *mgo.Collection) Token {
-  // generate a unique token
+  // generate and persist unique token
+  // retry if token collision
   t := TokenGenerator()
-  for ; tokenExists(token_collection, &t); t = TokenGenerator() { }
-
-  // persist the token (TODO: make this atomic)
-  err := token_collection.Insert(t)
-  if err != nil {
-    panic(err)
-  } 
-
-  return t
-}
-
-func tokenExists(token_collection *mgo.Collection, token *Token) bool {
-  count, err := token_collection.Find(bson.M{"id": token.Id}).Count()
-  if err != nil {
-    panic(err)
+  for err := token_collection.Insert(t); err != nil ; err = token_collection.Insert(t) { 
+    if !mgo.IsDup(err) {
+      // if this is not a "duplicate key" error, panic
+      panic(err)
+    } else {
+      // otherwise, it's just a random dupe, find another key and try again
+      fmt.Printf("dup - generating another token")
+      t = TokenGenerator()
+    }
   }
 
-  return count == 1 
+  return t
 }
 
 func TokenGenerator() Token {
